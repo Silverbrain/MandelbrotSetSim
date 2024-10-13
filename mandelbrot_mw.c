@@ -1,9 +1,9 @@
 /******************************************************************
 Description: Program to calculate the Mandelbrot set using
-             a manager-worker pattern
+			 a manager-worker pattern
 
 Notes: compile with: mpicc -o mandelbrot_mpi_mw mandelbrot_mpi_mw.c -lm
-       run with:     sbatch run_mandelbrot_mw.sh
+	   run with:     sbatch run_mandelbrot_mw.sh
 
 
 ******************************************************************/
@@ -26,9 +26,9 @@ float z_Re[N_RE + 1], z_Im[N_IM + 1];
 
 /* Domain size */
 const float z_Re_min = -2.0; /* Minimum real value*/
-const float z_Re_max = 1.0;  /* Maximum real value */
+const float z_Re_max = 1.0;	 /* Maximum real value */
 const float z_Im_min = -1.0; /* Minimum imaginary value */
-const float z_Im_max = 1.0;  /* Maximum imaginary value */
+const float z_Im_max = 1.0;	 /* Maximum imaginary value */
 
 /* Set to true to write out results*/
 const bool doIO = true;
@@ -42,33 +42,33 @@ const bool verbose = true;
 void calc_vals(int i)
 {
 
-    /* Maximum number of iterations*/
-    const int maxIter = 100;
+	/* Maximum number of iterations*/
+	const int maxIter = 100;
 
-    /* Value of Z at current iteration*/
-    float complex z;
-    /*Value of z at iteration zero*/
-    float complex z0;
+	/* Value of Z at current iteration*/
+	float complex z;
+	/*Value of z at iteration zero*/
+	float complex z0;
 
-    int j, k;
+	int j, k;
 
-    /* Loop over imaginary axis */
-    for (j = 0; j < N_IM + 1; j++)
-    {
-        z0 = z_Re[i] + z_Im[j] * I;
-        z = z0;
+	/* Loop over imaginary axis */
+	for (j = 0; j < N_IM + 1; j++)
+	{
+		z0 = z_Re[i] + z_Im[j] * I;
+		z = z0;
 
-        /* Iterate up to a maximum number or bail out if mod(z) > 2 */
-        k = 0;
-        while (k < maxIter)
-        {
-            nIter[i][j] = k;
-            if (cabs(z) > 2.0)
-                break;
-            z = z * z + z0;
-            k++;
-        }
-    }
+		/* Iterate up to a maximum number or bail out if mod(z) > 2 */
+		k = 0;
+		while (k < maxIter)
+		{
+			nIter[i][j] = k;
+			if (cabs(z) > 2.0)
+				break;
+			z = z * z + z0;
+			k++;
+		}
+	}
 }
 
 /******************************************************************************************/
@@ -80,56 +80,56 @@ only the worker processes */
 void do_communication(int myRank)
 {
 
-    MPI_Group worldGroup, workerGroup;
-    MPI_Comm workerComm;
-    int zeroArray = {0};
+	MPI_Group worldGroup, workerGroup;
+	MPI_Comm workerComm;
+	int zeroArray = {0};
 
-    int sendBuffer[(N_RE + 1) * (N_IM + 1)];
-    int receiveBuffer[(N_RE + 1) * (N_IM + 1)];
-    int index = 0;
-    int i, j;
+	int sendBuffer[(N_RE + 1) * (N_IM + 1)];
+	int receiveBuffer[(N_RE + 1) * (N_IM + 1)];
+	int index = 0;
+	int i, j;
 
-    // Get a group handle for the world group
-    MPI_Comm_group(MPI_COMM_WORLD, &worldGroup);
-    // Form a new group excluding world group rank 0
-    MPI_Group_excl(worldGroup, 1, &zeroArray, &workerGroup);
-    // Create a communicator for the new group
-    MPI_Comm_create(MPI_COMM_WORLD, workerGroup, &workerComm);
+	// Get a group handle for the world group
+	MPI_Comm_group(MPI_COMM_WORLD, &worldGroup);
+	// Form a new group excluding world group rank 0
+	MPI_Group_excl(worldGroup, 1, &zeroArray, &workerGroup);
+	// Create a communicator for the new group
+	MPI_Comm_create(MPI_COMM_WORLD, workerGroup, &workerComm);
 
-    /* Pack nIter into a 1D buffer for sending*/
-    for (i = 0; i < N_RE + 1; i++)
-    {
-        for (j = 0; j < N_IM + 1; j++)
-        {
-            sendBuffer[index] = nIter[i][j];
-            index++;
-        }
-    }
+	/* Pack nIter into a 1D buffer for sending*/
+	for (i = 0; i < N_RE + 1; i++)
+	{
+		for (j = 0; j < N_IM + 1; j++)
+		{
+			sendBuffer[index] = nIter[i][j];
+			index++;
+		}
+	}
 
-    /* call MPI_reduce to collate all results on world group process 1
-        The world group rank zero process does not make this call */
-    if (myRank != 0)
-    {
-        MPI_Reduce(&sendBuffer, &receiveBuffer, (N_RE + 1) * (N_IM + 1), MPI_INT, MPI_SUM, 0, workerComm);
-    }
+	/* call MPI_reduce to collate all results on world group process 1
+		The world group rank zero process does not make this call */
+	if (myRank != 0)
+	{
+		MPI_Reduce(&sendBuffer, &receiveBuffer, (N_RE + 1) * (N_IM + 1), MPI_INT, MPI_SUM, 0, workerComm);
+	}
 
-    /* Unpack receive buffer into nIter */
-    index = 0;
-    for (i = 0; i < N_RE + 1; i++)
-    {
-        for (j = 0; j < N_IM + 1; j++)
-        {
-            nIter[i][j] = receiveBuffer[index];
-            index++;
-        }
-    }
+	/* Unpack receive buffer into nIter */
+	index = 0;
+	for (i = 0; i < N_RE + 1; i++)
+	{
+		for (j = 0; j < N_IM + 1; j++)
+		{
+			nIter[i][j] = receiveBuffer[index];
+			index++;
+		}
+	}
 
-    /* Free the group and communicator */
-    if (myRank != 0)
-    {
-        MPI_Comm_free(&workerComm);
-    }
-    MPI_Group_free(&workerGroup);
+	/* Free the group and communicator */
+	if (myRank != 0)
+	{
+		MPI_Comm_free(&workerComm);
+	}
+	MPI_Group_free(&workerGroup);
 }
 
 /******************************************************************************************/
@@ -137,18 +137,18 @@ void do_communication(int myRank)
 void write_to_file(char filename[])
 {
 
-    int i, j;
-    FILE *outfile;
+	int i, j;
+	FILE *outfile;
 
-    outfile = fopen(filename, "w");
-    for (i = 0; i < N_RE + 1; i++)
-    {
-        for (j = 0; j < N_IM + 1; j++)
-        {
-            fprintf(outfile, "%f %f %d \n", z_Re[i], z_Im[j], nIter[i][j]);
-        }
-    }
-    fclose(outfile);
+	outfile = fopen(filename, "w");
+	for (i = 0; i < N_RE + 1; i++)
+	{
+		for (j = 0; j < N_IM + 1; j++)
+		{
+			fprintf(outfile, "%f %f %d \n", z_Re[i], z_Im[j], nIter[i][j]);
+		}
+	}
+	fclose(outfile);
 }
 
 /******************************************************************************************/
@@ -156,123 +156,175 @@ void write_to_file(char filename[])
 int main(int argc, char *argv[])
 {
 
-    /* MPI related variables */
-    int myRank;          /* Rank of this MPI process */
-    int nProcs;          /* Total number of MPI processes*/
-    int nextProc;        /* Next process to send work to */
-    MPI_Status status;   /* Status from MPI calls */
-    int endFlag = -9999; /* Flag to indicate completion*/
+	/* MPI related variables */
+	int myRank;			 /* Rank of this MPI process */
+	int nProcs;			 /* Total number of MPI processes*/
+	int nextProc;		 /* Next process to send work to */
+	MPI_Status status;	 /* Status from MPI calls */
+	int endFlag = -9999; /* Flag to indicate completion*/
 
-    /* Timing variables */
-    double start_time, end_time;
+	/* Timing variables */
+	double start_time, end_time;
 
-    /* Loop indices */
-    int i, j;
+	/* Loop indices */
+	int i, j;
 
-    MPI_Init(&argc, &argv);
+	MPI_Init(&argc, &argv);
 
-    /* Record start time */
-    start_time = MPI_Wtime();
+	/* Record start time */
+	start_time = MPI_Wtime();
 
-    /* Get job size and rank information */
-    MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
-    MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
+	/* Get job size and rank information */
+	MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
+	MPI_Comm_size(MPI_COMM_WORLD, &nProcs);
 
-    if (myRank == 0 && verbose)
-    {
-        printf("Calculating Mandelbrot set with %d processes\n", nProcs);
-    }
+	if (myRank == 0 && verbose)
+	{
+		printf("Calculating Mandelbrot set with %d processes\n", nProcs);
+	}
 
-    /* Initialise to nIter zero as we will use a reduce to collate results into this array*/
-    for (i = 0; i < N_RE + 1; i++)
-    {
-        for (j = 0; j < N_IM + 1; j++)
-        {
-            nIter[i][j] = 0;
-        }
-    }
+	/* Initialise to nIter zero as we will use a reduce to collate results into this array*/
+	for (i = 0; i < N_RE + 1; i++)
+	{
+		for (j = 0; j < N_IM + 1; j++)
+		{
+			nIter[i][j] = 0;
+		}
+	}
 
-    /* Points on real axis */
-    for (i = 0; i < N_RE + 1; i++)
-    {
-        z_Re[i] = (((float)i) / ((float)N_RE)) * (z_Re_max - z_Re_min) + z_Re_min;
-    }
+	/* Points on real axis */
+	for (i = 0; i < N_RE + 1; i++)
+	{
+		z_Re[i] = (((float)i) / ((float)N_RE)) * (z_Re_max - z_Re_min) + z_Re_min;
+	}
 
-    /* Points on imaginary axis */
-    for (j = 0; j < N_IM + 1; j++)
-    {
-        z_Im[j] = (((float)j) / ((float)N_IM)) * (z_Im_max - z_Im_min) + z_Im_min;
-    }
+	/* Points on imaginary axis */
+	for (j = 0; j < N_IM + 1; j++)
+	{
+		z_Im[j] = (((float)j) / ((float)N_IM)) * (z_Im_max - z_Im_min) + z_Im_min;
+	}
 
-    // Manager process
-    if (myRank == 0)
-    {
-        // Hand out work to worker processes
-        for (i = 0; i < N_RE + 1; i++)
-        {
-            // Receive request for work
-            MPI_Recv(&nextProc, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-            // Send i value to requesting process
-            MPI_Send(&i, 1, MPI_INT, nextProc, 100, MPI_COMM_WORLD);
-        }
-        // Tell all the worker processes to finish (once for each worker process = nProcs-1)
-        for (i = 0; i < nProcs - 1; i++)
-        {
-            // Receive request for work
-            MPI_Recv(&nextProc, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-            // Send endFlag to finish
-            MPI_Send(&endFlag, 1, MPI_INT, nextProc, 100, MPI_COMM_WORLD);
-        }
-    }
+	// Message buffer for Manager/Worker communications
+	int res_buff[N_IM + 3];			// calculated column
+	const int col_idx = N_IM + 1;	// index of the column calculated by worker
+	const int proc_rank = N_IM + 2; // Rank of the worker that calculated the column
 
-    // Worker Processes
-    else
-    {
+	// Initialise the message buffer
+	res_buff[col_idx] = -1; // Set the initial value of column index to a missing value
+	res_buff[proc_rank] = myRank;
+	for (i = 0; i < N_IM + 1; i++)
+	{
+		res_buff[i] = 0;
+	}
 
-        while (true)
-        {
+	// Manager process
+	if (myRank == 0)
+	{
+		// Hand out work to worker processes
+		for (i = 0; i < N_RE + 1; i++)
+		{
+			// Receive request for work
+			MPI_Recv(&res_buff, N_IM + 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
-            // Send request for work
-            MPI_Send(&myRank, 1, MPI_INT, 0, 100 + myRank, MPI_COMM_WORLD);
-            // Receive i value to work on
-            MPI_Recv(&i, 1, MPI_INT, 0, 100, MPI_COMM_WORLD, &status);
+			/* Extracting the rank of nextProc and index of computed column from message buffer*/
+			nextProc = res_buff[proc_rank];
+			int calc_col = res_buff[col_idx];
 
-            if (i == endFlag)
-            {
-                break;
-            }
-            else
-            {
-                calc_vals(i);
-            }
+			// Check if the column index is valid
+			if (calc_col >= 0)
+			{
+				// Unpack the message buffer and store the received column in the nIter array
+				for (j = 0; j < N_IM + 1; j++)
+				{
+					nIter[calc_col][j] = res_buff[j];
+				}
+			}
 
-        } // while(true)
-    }     // else worker process
+			// Send i value to requesting process
+			MPI_Send(&i, 1, MPI_INT, nextProc, 100, MPI_COMM_WORLD);
+		}
+		// Tell all the worker processes to finish (once for each worker process = nProcs-1)
+		for (i = 0; i < nProcs - 1; i++)
+		{
+			// Receive request for work
+			MPI_Recv(&res_buff, N_IM + 3, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
-    /* Communicate results so rank 1 has all the values */
-    do_communication(myRank);
+			/* Extracting the rank of nextProc and index of computed column from message buffer*/
+			nextProc = res_buff[proc_rank];
+			int calc_col = res_buff[col_idx];
 
-    /* Write out results */
-    if (doIO && myRank == 1)
-    {
-        if (verbose)
-        {
-            printf("Writing out results from process %d \n", myRank);
-        }
-        write_to_file("mandelbrot.dat");
-    }
+			// Unpack the message buffer and store the received column in the nIter array
+			for (j = 0; j < N_IM + 1; j++)
+			{
+				nIter[calc_col][j] = res_buff[j];
+			}
 
-    /* Record end time */
-    MPI_Barrier(MPI_COMM_WORLD);
-    end_time = MPI_Wtime();
+			// Send endFlag to finish
+			MPI_Send(&endFlag, 1, MPI_INT, nextProc, 100, MPI_COMM_WORLD);
+		}
+	}
 
-    /* Record end time. The barrier synchronises the process so they all measure the same time */
-    if (myRank == 0)
-    {
-        printf("STATS (num procs, elapsed time): %d %f\n", nProcs, end_time - start_time);
-    }
+	// Worker Processes
+	else
+	{
+		while (true)
+		{
+			// Send the computed column and request for work
+			MPI_Send(&res_buff, N_IM + 3, MPI_INT, 0, 100 + myRank, MPI_COMM_WORLD);
+			// Receive i value to work on
+			MPI_Recv(&i, 1, MPI_INT, 0, 100, MPI_COMM_WORLD, &status);
 
-    MPI_Finalize();
+			if (i == endFlag)
+			{
+				break;
+			}
+			else
+			{
+				// Set the index of the column which is being computed to send to the Manager process
+				res_buff[col_idx] = i;
 
-    return 0;
+				calc_vals(i);
+
+				// pack the calculated column into the message buffer
+				for (j = 0; j < N_IM + 1; j++)
+				{
+					res_buff[j] = nIter[i][j];
+				}
+			}
+
+		} // while(true)
+	} // else worker process
+
+	/*
+		Since the communication pattern has changed,
+		there is no need to call do communication function,
+		anymore therefore the line that calls the
+		do_communication function is commented out
+	*/
+	/* Communicate results so rank 1 has all the values */
+	// do_communication(myRank);
+
+	/* Write out results */
+	if (doIO && myRank == 0)
+	{
+		if (verbose)
+		{
+			printf("Writing out results from process %d \n", myRank);
+		}
+		write_to_file("mandelbrot.dat");
+	}
+
+	/* Record end time */
+	MPI_Barrier(MPI_COMM_WORLD);
+	end_time = MPI_Wtime();
+
+	/* Record end time. The barrier synchronises the process so they all measure the same time */
+	if (myRank == 0)
+	{
+		printf("STATS (num procs, elapsed time): %d %f\n", nProcs, end_time - start_time);
+	}
+
+	MPI_Finalize();
+
+	return 0;
 }
