@@ -14,7 +14,7 @@ This program calculates the Mandelbrot set using a parallelized manager-worker a
 To compile the program, run:
 
 ```bash
-mpicc -o mandelbrot_mpi_mw mandelbrot_mpi_mw.c -lm
+mpicc -o mandelbrot_mw mandelbrot_mw.c -lm
 ```
 
 ### Running the Program
