@@ -1,0 +1,16 @@
+# Ignore PNG and DAT files
+*.png
+*.dat
+
+# Ignore temporary files
+*~
+*.swp
+.DS_Store
+
+# Ignore compiled binaries
+mandelbrot_test
+mandelbrot_mw
+
+# Ignore version control metadata
+.vscode/
+.idea/
