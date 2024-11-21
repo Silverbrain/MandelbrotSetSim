@@ -7,26 +7,29 @@ This program calculates the Mandelbrot set using a parallelized manager-worker a
 ### Prerequisites
 
 - **MPI Library**: Ensure MPI (such as OpenMPI) is installed on your system.
-- **C Compiler**: You'll need a C compiler, such as `gcc`.
+- **C Compiler**: You'll need a C compiler, preferably OpenMPI C compiler wrapper `mpicc`.
 
 ### Compilation
 
-To compile the program, run:
+To compile the program, simply run:
 
 ```bash
+git clone https://github.com/Silverbrain/MandelbrotSetSim.git
+cd MandelbrotSetSim
+make
+```
+
+or
+
+```bash
+git clone https://github.com/Silverbrain/MandelbrotSetSim.git
+cd MandelbrotSetSim
 mpicc -o mandelbrot_mw mandelbrot_mw.c -lm
 ```
 
 ### Running the Program
 
-To execute the program, use the provided SLURM script or manually run it with MPI:
-
-```bash
-sbatch run_mandelbrot_mw.sh
-```
-
-Alternatively:
-
+To execute the program, run it with MPI:
 ```bash
 mpirun -np <num_processes> ./mandelbrot_mpi_mw
 ```
