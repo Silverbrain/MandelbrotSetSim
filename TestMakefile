@@ -1,0 +1,22 @@
+# Compiler
+CC = gcc
+
+# Flags for the compiler
+CFLAGS = -I/opt/homebrew/Cellar/cunit/2.1-3/include
+
+# Flags for the linker
+LDFLAGS = -L/opt/homebrew/Cellar/cunit/2.1-3/lib -lcunit -lm
+
+# Target executable
+TARGET = mandelbrot_test
+
+# Source files
+SRC = mandelbrot_test.c
+
+# Build the target
+$(TARGET): $(SRC)
+	$(CC) -o $(TARGET) $(SRC) $(CFLAGS) $(LDFLAGS)
+
+# Clean up build files
+clean:
+	rm -f $(TARGET)
