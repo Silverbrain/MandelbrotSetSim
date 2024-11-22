@@ -1,3 +1,13 @@
+/*******************************************************************
+Description: Header file contains functions, variables and
+             constants that are necessary for the mandelbrot program
+             to work properly
+
+Notes:
+    You can change the variables and constants which are defined in
+    it this file to change the boundries of Mandelbrot set.
+*******************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <complex.h>

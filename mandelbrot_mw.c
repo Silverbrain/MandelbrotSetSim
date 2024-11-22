@@ -1,12 +1,10 @@
 /******************************************************************
-
 Description: Program to calculate the Mandelbrot set using
 			 a manager-worker pattern
 
 Notes:
 	compile with: mpicc -o mandelbrot_mw mandelbrot_mw.c -lm
 	or simply run 'make' command in your terminal
-
 ******************************************************************/
 
 #include <stdio.h>
