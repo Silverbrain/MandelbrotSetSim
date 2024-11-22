@@ -67,7 +67,7 @@ Modify the following constants to adjust the calculation's precision or domain:
 
 ## Performance
 
-The program's parallel performance has been optimized by reducing unnecessary data transfer using point-to-point communication instead of collective calls (`MPI_Reduce`). This improves scalability for larger process counts.
+The program's parallel performance has been optimized by reducing unnecessary data transfer using point-to-point communication instead of collective calls (`MPI_Reduce`). This improves scalability for larger process counts. You can read the full [scaling report](https://github.com/Silverbrain/MandelbrotSetSim/blob/dev/optimisation_report.pdf) for more details.
 
 ## License
 
