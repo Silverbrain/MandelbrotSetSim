@@ -2,6 +2,8 @@
 
 This program calculates the Mandelbrot set using a parallelized manager-worker approach with MPI. The computation is distributed across multiple processes, where the manager delegates tasks to worker processes, which compute and return results incrementally.
 
+![mandelbrot set](https://github.com/Silverbrain/MandelbrotSetSim/blob/dev/mandelbrot.png)
+
 ## Getting Started
 
 ### Prerequisites
